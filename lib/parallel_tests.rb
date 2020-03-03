@@ -43,8 +43,8 @@ module ParallelTests
       ENV.fetch('PARALLEL_PID_FILE')
     end
 
-    def stop_all_processes
-      pids.all.each { |pid| Process.kill(:INT, pid) }
+    def stop_all_processes(signal = :INT)
+      pids.all.each { |pid| Process.kill(signal.to_sym, pid) }
     end
 
     # copied from http://github.com/carlhuda/bundler Bundler::SharedHelpers#find_gemfile

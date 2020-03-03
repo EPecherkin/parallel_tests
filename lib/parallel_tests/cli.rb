@@ -7,7 +7,9 @@ require 'pathname'
 module ParallelTests
   class CLI
     def run(argv)
-      Signal.trap("INT") { handle_interrupt }
+      %w[INT TERM QUIT HUP].each do |signal|
+        Signal.trap(signal) { handle_interrupt(signal) }
+      end
 
       options = parse_options!(argv)
 
@@ -27,13 +29,13 @@ module ParallelTests
 
     private
 
-    def handle_interrupt
+    def handle_interrupt(signal)
       @graceful_shutdown_attempted ||= false
       Kernel.exit if @graceful_shutdown_attempted
 
       # The Pid class's synchronize method can't be called directly from a trap
       # Using Thread workaround https://github.com/ddollar/foreman/issues/332
-      Thread.new { ParallelTests.stop_all_processes }
+      Thread.new { ParallelTests.stop_all_processes(signal) }
 
       @graceful_shutdown_attempted = true
     end
